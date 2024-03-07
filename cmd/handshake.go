@@ -42,26 +42,9 @@ func CheckLatestHandshake(args []string) {
 	defer resp.OutputAndExit()
 
 	peer, err := OldestHandshake(args)
-	if resp.UpdateStatusOnError(err, monitoringplugin.WARNING, "", true) {
-		return
-	} else if !peer.Valid() {
-		resp.UpdateStatus(monitoringplugin.WARNING, "no valid peer found")
-		return
+	if !resp.UpdateStatusOnError(err, monitoringplugin.WARNING, "", true) {
+		handshakeResponse(&peer, resp)
 	}
-
-	d := time.Since(peer.LatestHandshake).Truncate(time.Second).Seconds()
-	point := monitoringplugin.NewPerformanceDataPoint("latest-handshake", d).
-		SetUnit("s").
-		SetThresholds(monitoringplugin.NewThresholds(
-			nil, handshakeWarn.Seconds(), nil, handshakeCrit.Seconds()))
-
-	if err := resp.AddPerformanceDataPoint(point); err != nil {
-		resp.UpdateStatusOnError(
-			fmt.Errorf("failed add performance data: %w", err),
-			monitoringplugin.WARNING, "", true)
-		return
-	}
-	resp.UpdateStatus(monitoringplugin.OK, fmt.Sprintf("peer=%v", peer.Name()))
 }
 
 func OldestHandshake(args []string) (wg.DumpPeer, error) {
@@ -81,4 +64,23 @@ func OldestHandshake(args []string) (wg.DumpPeer, error) {
 		return nil
 	})
 	return peer, err
+}
+
+func handshakeResponse(peer *wg.DumpPeer, resp *monitoringplugin.Response) {
+	if !peer.Valid() {
+		resp.UpdateStatus(monitoringplugin.WARNING, "no valid peer found")
+		return
+	}
+
+	d := time.Since(peer.LatestHandshake).Truncate(time.Second).Seconds()
+	point := monitoringplugin.NewPerformanceDataPoint("latest-handshake", d).
+		SetUnit("s").
+		SetThresholds(monitoringplugin.NewThresholds(
+			nil, handshakeWarn.Seconds(), nil, handshakeCrit.Seconds()))
+
+	if err := resp.AddPerformanceDataPoint(point); err != nil {
+		err = fmt.Errorf("failed add performance data: %w", err)
+		resp.UpdateStatusOnError(err, monitoringplugin.WARNING, "", true)
+	}
+	resp.UpdateStatus(monitoringplugin.OK, fmt.Sprintf("peer=%v", peer.Name()))
 }
