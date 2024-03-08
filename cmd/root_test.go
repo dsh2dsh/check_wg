@@ -6,9 +6,46 @@ import (
 	"os"
 	"testing"
 
+	"github.com/inexio/go-monitoringplugin"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/dsh2dsh/check_wg/wg"
 )
+
+func TestMonitoringResponse(t *testing.T) {
+	var callCount int
+	resp := monitoringResponse("test OK",
+		[]string{"cat", "../wg/testdata/wg_show_dump.txt"},
+		func(dump *wg.Dump, resp *monitoringplugin.Response) error {
+			callCount++
+			return nil
+		})
+	require.NotNil(t, resp)
+	assert.Equal(t, 1, callCount)
+	assert.Equal(t, monitoringplugin.OK, resp.GetStatusCode())
+
+	resp = monitoringResponse("test OK", []string{"cat", "/dev/null"},
+		func(dump *wg.Dump, resp *monitoringplugin.Response) error {
+			callCount++
+			return nil
+		})
+	require.NotNil(t, resp)
+	assert.Equal(t, 1, callCount)
+	assert.Equal(t, monitoringplugin.WARNING, resp.GetStatusCode())
+	assert.Contains(t, resp.GetInfo().RawOutput,
+		"with input from [cat /dev/null]")
+
+	wantErr := errors.New("test error")
+	resp = monitoringResponse("test OK",
+		[]string{"cat", "../wg/testdata/wg_show_dump.txt"},
+		func(dump *wg.Dump, resp *monitoringplugin.Response) error {
+			return wantErr
+		})
+	require.NotNil(t, resp)
+	assert.Equal(t, monitoringplugin.WARNING, resp.GetStatusCode())
+	assert.Contains(t, resp.GetInfo().RawOutput, wantErr.Error())
+}
 
 func TestWgDump_errors(t *testing.T) {
 	_, err := NewWgDump([]string{"cat", "/dev/null"})

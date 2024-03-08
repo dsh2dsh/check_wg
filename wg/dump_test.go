@@ -83,6 +83,7 @@ func TestDump_Parse(t *testing.T) {
 		peer := &dump.Peers[i]
 		assert.True(t, peer.Valid())
 		assert.Equal(t, peer.AllowedIPs[0], peer.Name())
+		assert.Same(t, peer, dump.Peer(peer.Name()))
 	}
 
 	peer := dump.OldestHandshake()
@@ -129,6 +130,13 @@ func TestDump_parseFwMark_hex(t *testing.T) {
 	var dump Dump
 	require.NoError(t, dump.parseFwMark("0xffffffff"))
 }
+
+func TestDump_Peer_notFound(t *testing.T) {
+	var dump Dump
+	assert.Nil(t, dump.Peer("foobar"))
+}
+
+// --------------------------------------------------
 
 func TestDumpPeer_emptyNotValid(t *testing.T) {
 	var peer DumpPeer

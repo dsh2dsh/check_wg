@@ -104,6 +104,16 @@ func (self *Dump) OldestHandshake() *DumpPeer {
 	return oldestPeer
 }
 
+func (self *Dump) Peer(name string) *DumpPeer {
+	for i := range self.Peers {
+		p := &self.Peers[i]
+		if p.Name() == name {
+			return p
+		}
+	}
+	return nil
+}
+
 // --------------------------------------------------
 
 func NewDumpPeer(rec []string) (DumpPeer, error) {

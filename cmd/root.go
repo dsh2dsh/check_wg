@@ -27,22 +27,24 @@ func init() {
 	rootCmd.AddCommand(&transferCmd)
 }
 
-func Execute() error {
-	return rootCmd.Execute() //nolint:wrapcheck // main() doesn't need it
+func Execute() {
+	if err := rootCmd.Execute(); err != nil {
+		os.Exit(1)
+	}
 }
 
 func monitoringResponse(msgOk string, args []string,
 	fn func(dump *wg.Dump, resp *monitoringplugin.Response) error,
-) {
+) *monitoringplugin.Response {
 	resp := monitoringplugin.NewResponse(msgOk)
 	resp.SetOutputDelimiter(" / ")
-	defer resp.OutputAndExit()
 
 	dump, err := NewWgDump(args)
 	if err == nil {
 		err = fn(&dump, resp)
 	}
 	resp.UpdateStatusOnError(err, monitoringplugin.WARNING, "", true)
+	return resp
 }
 
 func NewWgDump(args []string) (dump wg.Dump, err error) {

@@ -24,8 +24,9 @@ It analizes latest handshake of every peer and outputs warning or critical
 status if any of them is greater of given threshold.`,
 
 		Run: func(cmd *cobra.Command, args []string) {
-			monitoringResponse("oldest latest handshake is OK", args,
-				handshakeResponse)
+			monitoringResponse(
+				"oldest latest handshake is OK", args, handshakeResponse).
+				OutputAndExit()
 		},
 	}
 )
