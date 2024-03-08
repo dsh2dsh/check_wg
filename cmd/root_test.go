@@ -10,6 +10,22 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+func TestWgDump_errors(t *testing.T) {
+	_, err := NewWgDump([]string{"cat", "/dev/null"})
+	require.ErrorContains(t, err, "with input from")
+
+	devnull, err := os.Open("/dev/null")
+	require.NoError(t, err)
+	t.Cleanup(func() { devnull.Close() })
+
+	stdin := os.Stdin
+	t.Cleanup(func() { os.Stdin = stdin })
+	os.Stdin = devnull
+
+	_, err = NewWgDump([]string{})
+	require.ErrorContains(t, err, "with input from stdin")
+}
+
 func TestWithWgCmd(t *testing.T) {
 	err := withWgCmd([]string{}, func(r io.Reader) error {
 		assert.Same(t, r, os.Stdin)

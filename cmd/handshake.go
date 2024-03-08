@@ -1,8 +1,8 @@
 package cmd
 
 import (
+	"errors"
 	"fmt"
-	"io"
 	"time"
 
 	"github.com/inexio/go-monitoringplugin"
@@ -24,7 +24,8 @@ It analizes latest handshake of every peer and outputs warning or critical
 status if any of them is greater of given threshold.`,
 
 		Run: func(cmd *cobra.Command, args []string) {
-			CheckLatestHandshake(args)
+			monitoringResponse("oldest latest handshake is OK", args,
+				handshakeResponse)
 		},
 	}
 )
@@ -36,41 +37,12 @@ func init() {
 		"critical threshold")
 }
 
-func CheckLatestHandshake(args []string) {
-	resp := monitoringplugin.NewResponse("oldest latest handshake is OK")
-	resp.SetOutputDelimiter(" / ")
-	defer resp.OutputAndExit()
-
-	peer, err := OldestHandshake(args)
-	if !resp.UpdateStatusOnError(err, monitoringplugin.WARNING, "", true) {
-		handshakeResponse(&peer, resp)
+func handshakeResponse(dump *wg.Dump, resp *monitoringplugin.Response) error {
+	peer := dump.OldestHandshake()
+	if peer == nil {
+		return errors.New("no valid peer found")
 	}
-}
-
-func OldestHandshake(args []string) (wg.DumpPeer, error) {
-	var peer wg.DumpPeer
-	err := withWgCmd(args, func(r io.Reader) error {
-		wgDump, err := wg.NewDump(r)
-		if err != nil {
-			if len(args) == 0 {
-				return fmt.Errorf("with input from stdin: %w", err)
-			}
-			return fmt.Errorf("with input from %v: %w", args, err)
-		}
-
-		if oldestPeer := wgDump.OldestHandshake(); oldestPeer != nil {
-			peer = *oldestPeer
-		}
-		return nil
-	})
-	return peer, err
-}
-
-func handshakeResponse(peer *wg.DumpPeer, resp *monitoringplugin.Response) {
-	if !peer.Valid() {
-		resp.UpdateStatus(monitoringplugin.WARNING, "no valid peer found")
-		return
-	}
+	resp.UpdateStatus(monitoringplugin.OK, fmt.Sprintf("peer=%v", peer.Name()))
 
 	d := time.Since(peer.LatestHandshake).Truncate(time.Second).Seconds()
 	point := monitoringplugin.NewPerformanceDataPoint("latest-handshake", d).
@@ -79,8 +51,8 @@ func handshakeResponse(peer *wg.DumpPeer, resp *monitoringplugin.Response) {
 			nil, handshakeWarn.Seconds(), nil, handshakeCrit.Seconds()))
 
 	if err := resp.AddPerformanceDataPoint(point); err != nil {
-		err = fmt.Errorf("failed add performance data: %w", err)
-		resp.UpdateStatusOnError(err, monitoringplugin.WARNING, "", true)
+		return fmt.Errorf("failed add performance data %v: %w",
+			peer.LatestHandshake, err)
 	}
-	resp.UpdateStatus(monitoringplugin.OK, fmt.Sprintf("peer=%v", peer.Name()))
+	return nil
 }

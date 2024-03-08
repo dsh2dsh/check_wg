@@ -6,7 +6,10 @@ import (
 	"os"
 	"os/exec"
 
+	"github.com/inexio/go-monitoringplugin"
 	"github.com/spf13/cobra"
+
+	"github.com/dsh2dsh/check_wg/wg"
 )
 
 var rootCmd = cobra.Command{
@@ -21,10 +24,39 @@ var rootCmd = cobra.Command{
 
 func init() {
 	rootCmd.AddCommand(&handshakeCmd)
+	rootCmd.AddCommand(&transferCmd)
 }
 
 func Execute() error {
 	return rootCmd.Execute() //nolint:wrapcheck // main() doesn't need it
+}
+
+func monitoringResponse(msgOk string, args []string,
+	fn func(dump *wg.Dump, resp *monitoringplugin.Response) error,
+) {
+	resp := monitoringplugin.NewResponse(msgOk)
+	resp.SetOutputDelimiter(" / ")
+	defer resp.OutputAndExit()
+
+	dump, err := NewWgDump(args)
+	if err == nil {
+		err = fn(&dump, resp)
+	}
+	resp.UpdateStatusOnError(err, monitoringplugin.WARNING, "", true)
+}
+
+func NewWgDump(args []string) (dump wg.Dump, err error) {
+	err = withWgCmd(args, func(r io.Reader) error {
+		dump, err = wg.NewDump(r)
+		if err != nil {
+			if len(args) == 0 {
+				return fmt.Errorf("with input from stdin: %w", err)
+			}
+			return fmt.Errorf("with input from %v: %w", args, err)
+		}
+		return nil
+	})
+	return
 }
 
 func withWgCmd(args []string, fn func(r io.Reader) error) error {
