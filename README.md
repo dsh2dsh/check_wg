@@ -4,7 +4,7 @@
 
 # Icinga2 health check of wireguard peers, using output of wg(8).
 
-FreeBSD port [here]:(https://github.com/dsh2dsh/freebsd-ports/tree/master/net-mgmt/check_wg)
+FreeBSD port [here](https://github.com/dsh2dsh/freebsd-ports/tree/master/net-mgmt/check_wg)
 
 ## Usage
 
