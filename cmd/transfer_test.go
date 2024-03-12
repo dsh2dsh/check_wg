@@ -17,13 +17,14 @@ func TestTransferResponse(t *testing.T) {
 	for i := range dump.Peers {
 		peer := &dump.Peers[i]
 		resp := monitoringplugin.NewResponse("test OK")
+		resp.SortOutputMessagesByStatus(false)
 		require.NoError(t, transferResponse(&dump, peer.Name(), resp))
 		assert.Equal(t, monitoringplugin.OK, resp.GetStatusCode())
 		assert.Contains(t, resp.GetInfo().RawOutput, "peer="+peer.Name())
 		assert.Contains(t, resp.GetInfo().RawOutput,
-			fmt.Sprintf("'rx'=%vb", peer.Rx))
+			fmt.Sprintf(" 'rx'=%vb", peer.Rx))
 		assert.Contains(t, resp.GetInfo().RawOutput,
-			fmt.Sprintf("'tx'=%vb", peer.Tx))
+			fmt.Sprintf(" 'tx'=%vb", peer.Tx))
 	}
 
 	resp := monitoringplugin.NewResponse("test OK")

@@ -41,10 +41,15 @@ Flags:
   -w, --warn duration   warning threshold (default 5m0s)
 
 $ check_wg handshake wg show wg0 dump
-OK: oldest latest handshake is OK / peer=10.0.0.3/32 | 'latest-handshake'=265s;~:300;~:900;;
+OK: latest handshake
+peer: 10.0.0.3/32
+latest handshake: 5m36s ago | 'latest handshake'=265s;300;900;;
 
 $ check_wg handshake wg show wg0 dump
-CRITICAL: latest-handshake is outside of CRITICAL threshold / peer=10.0.0.4/32 | 'latest-handshake'=188016s;~:300;~:180000;;
+CRITICAL: latest handshake is outside of CRITICAL threshold
+peer: 10.0.0.4/32
+latest handshake: 188016s ago
+threshold: 180000s | 'latest handshake'=188016s;300;180000;;
 ```
 
 ```
@@ -58,5 +63,6 @@ Flags:
   -h, --help   help for transfer
 
 $ check_wg transfer 10.0.0.5/32 wg show wg0 dump
-OK: bytes transferred / peer=10.0.0.5/32 | 'rx'=4166445367b 'tx'=68214085856b
+OK: bytes transferred
+peer=10.0.0.5/32 | 'rx'=5319303179b 'tx'=81508002220b
 ```

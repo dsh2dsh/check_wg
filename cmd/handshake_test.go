@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"fmt"
 	"testing"
 	"time"
 
@@ -43,10 +44,29 @@ func TestHandshakeResponse(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.latestHandshake.String(), func(t *testing.T) {
 			peer.LatestHandshake = time.Now().Add(-tt.latestHandshake)
+
 			resp := monitoringplugin.NewResponse("test OK")
+			resp.SortOutputMessagesByStatus(false)
+
 			require.NoError(t, handshakeResponse(&dump, resp))
 			assert.Equal(t, tt.statusCode, resp.GetStatusCode())
-			assert.Contains(t, resp.GetInfo().RawOutput, "peer="+peer.Name())
+
+			assert.Contains(t, resp.GetInfo().RawOutput, "peer: "+peer.Name())
+			assert.Contains(t, resp.GetInfo().RawOutput,
+				"latest handshake: "+tt.latestHandshake.Truncate(time.Second).String())
+
+			if resp.GetStatusCode() == monitoringplugin.WARNING {
+				assert.Contains(t, resp.GetInfo().RawOutput,
+					"threshold: "+handshakeWarn.String())
+			} else if resp.GetStatusCode() == monitoringplugin.CRITICAL {
+				assert.Contains(t, resp.GetInfo().RawOutput,
+					"threshold: "+handshakeCrit.String())
+			}
+
+			assert.Contains(t, resp.GetInfo().RawOutput,
+				fmt.Sprintf(" 'latest handshake'=%vs;%v;%v;;",
+					tt.latestHandshake.Seconds(), handshakeWarn.Seconds(),
+					handshakeCrit.Seconds()))
 		})
 	}
 }

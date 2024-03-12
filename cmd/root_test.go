@@ -32,7 +32,7 @@ func TestMonitoringResponse(t *testing.T) {
 		})
 	require.NotNil(t, resp)
 	assert.Equal(t, 1, callCount)
-	assert.Equal(t, monitoringplugin.WARNING, resp.GetStatusCode())
+	assert.Equal(t, monitoringplugin.UNKNOWN, resp.GetStatusCode())
 	assert.Contains(t, resp.GetInfo().RawOutput,
 		"with input from [cat /dev/null]")
 
@@ -43,7 +43,7 @@ func TestMonitoringResponse(t *testing.T) {
 			return wantErr
 		})
 	require.NotNil(t, resp)
-	assert.Equal(t, monitoringplugin.WARNING, resp.GetStatusCode())
+	assert.Equal(t, monitoringplugin.UNKNOWN, resp.GetStatusCode())
 	assert.Contains(t, resp.GetInfo().RawOutput, wantErr.Error())
 }
 

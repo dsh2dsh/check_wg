@@ -34,24 +34,24 @@ func transferResponse(dump *wg.Dump, name string,
 	if peer == nil {
 		return fmt.Errorf("peer not found: %s", name)
 	}
-	resp.UpdateStatus(monitoringplugin.OK, fmt.Sprintf("peer=%v", peer.Name()))
 
 	points := [...]struct {
-		Label   string
-		Octests uint64
+		Label string
+		Bytes uint64
 	}{
-		{Label: "rx", Octests: peer.Rx},
-		{Label: "tx", Octests: peer.Tx},
+		{Label: "rx", Bytes: peer.Rx},
+		{Label: "tx", Bytes: peer.Tx},
 	}
 
 	for i := range points {
 		pd := &points[i]
-		point := monitoringplugin.NewPerformanceDataPoint(pd.Label, pd.Octests).
+		point := monitoringplugin.NewPerformanceDataPoint(pd.Label, pd.Bytes).
 			SetUnit("b")
 		if err := resp.AddPerformanceDataPoint(point); err != nil {
-			return fmt.Errorf("failed add performance data %s=%v: %w",
-				pd.Label, pd.Octests, err)
+			return fmt.Errorf("add performance point %s=%v: %w",
+				pd.Label, pd.Bytes, err)
 		}
 	}
+	resp.UpdateStatus(resp.GetStatusCode(), fmt.Sprintf("peer=%v", peer.Name()))
 	return nil
 }

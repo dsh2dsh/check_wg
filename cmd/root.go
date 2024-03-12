@@ -37,13 +37,13 @@ func monitoringResponse(msgOk string, args []string,
 	fn func(dump *wg.Dump, resp *monitoringplugin.Response) error,
 ) *monitoringplugin.Response {
 	resp := monitoringplugin.NewResponse(msgOk)
-	resp.SetOutputDelimiter(" / ")
+	resp.SortOutputMessagesByStatus(false)
 
 	dump, err := NewWgDump(args)
 	if err == nil {
 		err = fn(&dump, resp)
 	}
-	resp.UpdateStatusOnError(err, monitoringplugin.WARNING, "", true)
+	resp.UpdateStatusOnError(err, monitoringplugin.UNKNOWN, "", true)
 	return resp
 }
 
