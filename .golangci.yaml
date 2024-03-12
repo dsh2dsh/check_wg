@@ -23,6 +23,11 @@ linters:
     - wrapcheck
 
 linters-settings:
+  goconst:
+    # Ignore test files.
+    # Default: false
+    ignore-tests: true
+
   goimports:
     # A comma-separated list of prefixes, which, if set, checks import paths
     # with the given prefixes are grouped after 3rd-party packages.
