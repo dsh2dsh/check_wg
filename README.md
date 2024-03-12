@@ -66,3 +66,144 @@ $ check_wg transfer 10.0.0.5/32 wg show wg0 dump
 OK: bytes transferred
 peer=10.0.0.5/32 | 'rx'=5319303179b 'tx'=81508002220b
 ```
+
+## Icinga2 configuration examples
+
+```
+object CheckCommand "check_wg_handshake" {
+  command = [ PluginDir + "/check_wg" ]
+
+  arguments = {
+    "--handshake" = {
+      value = "handshake"
+      order = -1
+      skip_key = true
+    }
+
+    "-w" = {
+      value = "$wg_handshake_warn$"
+    }
+    "-c" = {
+      value = "$wg_handshake_crit$"
+    }
+
+    "--" = {
+      value = "--"
+      order = 1
+      skip_key = true
+    }
+    "--wg-bin" = {
+      value = "/usr/bin/wg"
+      order = 2
+      skip_key = true
+    }
+    "--show" = {
+      value = "show"
+      order = 3
+      skip_key = true
+    }
+    "--ifname" = {
+      value = "$wg_ifname$"
+      order = 4
+      skip_key = true
+    }
+    "--dump" = {
+      value = "dump"
+      order = 5
+      skip_key = true
+    }
+  }
+
+  vars.wg_ifname = "wg0"
+  vars.wg_handshake_warn = "30m"
+  vars.wg_handshake_crit = "1h"
+}
+```
+
+```
+object CheckCommand "check_wg_transfer" {
+  command = [ PluginDir + "/check_wg" ]
+
+  arguments = {
+    "--transfer" = {
+      value = "transfer"
+      order = -1
+      skip_key = true
+    }
+    "--peer" = {
+      value = "$wg_peer$"
+      required = true
+      skip_key = true
+    }
+    "--" = {
+      value = "--"
+      order = 1
+      skip_key = true
+    }
+    "--wg-bin" = {
+      value = "/usr/bin/wg"
+      order = 2
+      skip_key = true
+    }
+    "--show" = {
+      value = "show"
+      order = 3
+      skip_key = true
+    }
+    "--ifname" = {
+      value = "$wg_ifname$"
+      order = 4
+      required = true
+      skip_key = true
+    }
+    "--dump" = {
+      value = "dump"
+      order = 5
+      skip_key = true
+    }
+  }
+
+  vars.wg_ifname = "wg0"
+}
+```
+
+```
+apply Service "wg_handshake_" for (ifname in host.vars.wg_ifaces) {
+  import "generic-service"
+
+  check_command = "check_wg_handshake"
+  command_endpoint = host.vars.agent_endpoint
+
+  vars.wg_iface = ifname
+
+  assign where host.vars.wg_ifaces
+}
+```
+
+```
+apply Service "wg_transfer_" for (name => cfg in host.vars.wg_peers) {
+  import "generic-service"
+
+  check_command = "check_wg_transfer"
+  command_endpoint = host.vars.agent_endpoint
+
+  vars.wg_iface = cfg.ifname
+  vars.wg_peer = cfg.peer
+
+  assign where host.vars.wg_peers
+}
+```
+
+```
+object Host "server" {
+  vars.wg_ifaces = [ "wg0" ]
+  vars.wg_peers["peer1"] = {
+    ifname = "wg0"
+    peer = "10.0.0.2/32"
+  }
+  vars.wg_peers["peer2"] = {
+    ifname = "wg0"
+    peer = "10.0.0.3/32"
+  }
+}
+```
