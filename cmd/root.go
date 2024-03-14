@@ -6,7 +6,7 @@ import (
 	"os"
 	"os/exec"
 
-	"github.com/inexio/go-monitoringplugin"
+	"github.com/dsh2dsh/go-monitoringplugin/v2"
 	"github.com/spf13/cobra"
 
 	"github.com/dsh2dsh/check_wg/wg"
@@ -37,7 +37,6 @@ func monitoringResponse(msgOk string, args []string,
 	fn func(dump *wg.Dump, resp *monitoringplugin.Response) error,
 ) *monitoringplugin.Response {
 	resp := monitoringplugin.NewResponse(msgOk)
-	resp.SortOutputMessagesByStatus(false)
 
 	dump, err := NewWgDump(args)
 	if err == nil {

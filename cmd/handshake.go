@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/inexio/go-monitoringplugin"
+	"github.com/dsh2dsh/go-monitoringplugin/v2"
 	"github.com/spf13/cobra"
 
 	"github.com/dsh2dsh/check_wg/wg"
@@ -44,21 +44,20 @@ func handshakeResponse(dump *wg.Dump, resp *monitoringplugin.Response) error {
 	}
 
 	d := time.Since(peer.LatestHandshake).Truncate(time.Second)
-	point := monitoringplugin.NewPerformanceDataPoint(
-		"latest handshake", d.Seconds()).
-		SetUnit("s").
-		SetThresholds(monitoringplugin.NewThresholds(
-			0, handshakeWarn.Seconds(), 0, handshakeCrit.Seconds()))
+	resp.WithDefaultOkMessage("latest handshake: " + d.String() + " ago")
 
+	point := monitoringplugin.NewPerformanceDataPoint(
+		"latest handshake", d.Seconds()).SetUnit("s")
+	point.NewThresholds(0, handshakeWarn.Seconds(), 0, handshakeCrit.Seconds())
 	if err := resp.AddPerformanceDataPoint(point); err != nil {
 		return fmt.Errorf("add performance point %v: %w",
 			peer.LatestHandshake, err)
 	}
-
 	resp.UpdateStatus(resp.GetStatusCode(), "peer: "+peer.Name())
-	resp.UpdateStatus(resp.GetStatusCode(), "latest handshake: "+d.String()+" ago")
 
 	if resp.GetStatusCode() != monitoringplugin.OK {
+		resp.UpdateStatus(resp.GetStatusCode(),
+			"latest handshake: "+d.String()+" ago")
 		var s string
 		if resp.GetStatusCode() == monitoringplugin.WARNING {
 			s = handshakeWarn.String()

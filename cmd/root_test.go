@@ -6,7 +6,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/inexio/go-monitoringplugin"
+	"github.com/dsh2dsh/go-monitoringplugin/v2"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 

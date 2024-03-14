@@ -3,7 +3,7 @@ package cmd
 import (
 	"fmt"
 
-	"github.com/inexio/go-monitoringplugin"
+	"github.com/dsh2dsh/go-monitoringplugin/v2"
 	"github.com/spf13/cobra"
 
 	"github.com/dsh2dsh/check_wg/wg"
@@ -34,6 +34,7 @@ func transferResponse(dump *wg.Dump, name string,
 	if peer == nil {
 		return fmt.Errorf("peer not found: %s", name)
 	}
+	resp.WithDefaultOkMessage(fmt.Sprintf("peer=%v", peer.Name()))
 
 	points := [...]struct {
 		Label string
@@ -52,6 +53,5 @@ func transferResponse(dump *wg.Dump, name string,
 				pd.Label, pd.Bytes, err)
 		}
 	}
-	resp.UpdateStatus(resp.GetStatusCode(), fmt.Sprintf("peer=%v", peer.Name()))
 	return nil
 }
