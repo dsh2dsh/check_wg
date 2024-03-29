@@ -41,6 +41,8 @@ func handshakeResponse(dump *wg.Dump, resp *monitoringplugin.Response) error {
 	peer := dump.OldestHandshake()
 	if peer == nil {
 		return errors.New("no valid peer found")
+	} else if checkNeverHandshake(peer, resp) {
+		return nil
 	}
 
 	d := time.Since(peer.LatestHandshake).Truncate(time.Second)
@@ -67,4 +69,14 @@ func handshakeResponse(dump *wg.Dump, resp *monitoringplugin.Response) error {
 		resp.UpdateStatus(resp.GetStatusCode(), "threshold: "+s)
 	}
 	return nil
+}
+
+func checkNeverHandshake(peer *wg.DumpPeer, resp *monitoringplugin.Response,
+) bool {
+	if !peer.LatestHandshake.IsZero() {
+		return false
+	}
+	resp.UpdateStatus(monitoringplugin.WARNING, "latest handshake: never")
+	resp.UpdateStatus(monitoringplugin.WARNING, "peer="+peer.Name())
+	return true
 }

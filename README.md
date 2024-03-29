@@ -49,6 +49,10 @@ CRITICAL: latest handshake is outside of CRITICAL threshold
 peer: 10.0.0.4/32
 latest handshake: 188016s ago
 threshold: 180000s | 'latest handshake'=188016s;300;180000;;
+
+$ check_wg handshake wg show wg0 dump
+WARNING: latest handshake: never
+peer: 10.0.0.4/32
 ```
 
 ```
