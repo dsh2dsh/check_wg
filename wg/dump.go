@@ -157,8 +157,9 @@ func (self *DumpPeer) parseLatestHanshake(s string) error {
 	secs, err := strconv.ParseUint(s, 10, 64)
 	if err != nil {
 		return fmt.Errorf("failed parse latest-handshake %q: %w", s, err)
+	} else if secs > 0 {
+		self.LatestHandshake = time.Unix(int64(secs), 0)
 	}
-	self.LatestHandshake = time.Unix(int64(secs), 0)
 	return nil
 }
 

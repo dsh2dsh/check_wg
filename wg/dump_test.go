@@ -16,6 +16,9 @@ import (
 //go:embed testdata/wg_show_dump.txt
 var showDumpOutput []byte
 
+//go:embed testdata/latest_handshake_zero.txt
+var showDumpZeroHandshake []byte
+
 var testDump = Dump{
 	PrivateKey: "",
 	PublicKey:  "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
@@ -136,6 +139,18 @@ func TestDump_Peer_notFound(t *testing.T) {
 	assert.Nil(t, dump.Peer("foobar"))
 }
 
+func TestDump_Parse_zeroHandshake(t *testing.T) {
+	require.NotEmpty(t, showDumpZeroHandshake)
+	b := bytes.NewBuffer(showDumpZeroHandshake)
+	dump, err := NewDump(b)
+	require.NoError(t, err)
+
+	peer := dump.OldestHandshake()
+	require.NotNil(t, peer)
+	t.Log(peer.LatestHandshake)
+	assert.True(t, peer.LatestHandshake.IsZero())
+}
+
 // --------------------------------------------------
 
 func TestDumpPeer_emptyNotValid(t *testing.T) {
@@ -159,4 +174,10 @@ func TestDumpPeer_parseKeepalive_Err(t *testing.T) {
 	err := peer.parseKeepalive("XXX")
 	require.ErrorIs(t, err, strconv.ErrSyntax)
 	require.ErrorContains(t, err, "failed parse persistent-keepalive")
+}
+
+func TestDumpPeer_parseLatestHanshake_zero(t *testing.T) {
+	var peer DumpPeer
+	require.NoError(t, peer.parseLatestHanshake("0"))
+	assert.True(t, peer.LatestHandshake.IsZero())
 }
