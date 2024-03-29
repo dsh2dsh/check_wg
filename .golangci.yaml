@@ -5,8 +5,8 @@ linters:
   enable:
     - asciicheck
     - bidichk
+    - copyloopvar
     - errorlint
-    - goconst
     - gocritic
     # - gofmt # we are using gofumpt instead
     - gofumpt
@@ -47,6 +47,14 @@ linters-settings:
       # https://github.com/mgechev/revive/blob/master/RULES_DESCRIPTIONS.md#receiver-naming
       - name: receiver-naming
         disabled: true
+
+  wrapcheck:
+    # An array of glob patterns which, if any match the package of the function
+    # returning the error, will skip wrapcheck analysis for this error. This is
+    # useful for broadly ignoring packages and/or subpackages from wrapcheck
+    # analysis. There are no defaults for this value.
+    ignorePackageGlobs:
+      - "github.com/dsh2dsh/check_wg/*"
 
 issues:
   exclude-rules:
