@@ -27,7 +27,8 @@ func init() {
 	rootCmd.AddCommand(&transferCmd)
 }
 
-func Execute() {
+func Execute(version string) {
+	rootCmd.Version = version
 	if err := rootCmd.Execute(); err != nil {
 		os.Exit(1)
 	}
