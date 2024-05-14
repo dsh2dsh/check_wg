@@ -1,10 +1,12 @@
 package wg
 
 import (
+	"context"
 	"encoding/csv"
 	"errors"
 	"fmt"
 	"io"
+	"net"
 	"strconv"
 	"strings"
 	"time"
@@ -200,4 +202,53 @@ func (self *DumpPeer) HandshakeBefore(p *DumpPeer) bool {
 
 func (self *DumpPeer) Name() string {
 	return self.AllowedIPs[0]
+}
+
+func (self *DumpPeer) ResolvedName() (string, error) {
+	cidr := self.AllowedIPs[0]
+	ip, _, err := net.ParseCIDR(cidr)
+	if err != nil {
+		return "", fmt.Errorf("parse %q: %w", cidr, err)
+	}
+
+	hostname, err := lookupAddr(ip.String())
+	if err != nil {
+		return "", fmt.Errorf("resolving %q from %q: %w", ip, cidr, err)
+	} else if hostname == ip.String() {
+		return cidr, nil
+	}
+	// ip/mask (hostname)
+	return cidr + " (" + hostname + ")", nil
+}
+
+func lookupAddr(name string) (string, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	names, err := net.DefaultResolver.LookupAddr(ctx, name)
+	if err != nil {
+		var dnsError *net.DNSError
+		if errors.As(err, &dnsError) && dnsError.IsNotFound {
+			return name, nil
+		}
+		return "", fmt.Errorf("resolving %q: %w", name, err)
+	}
+	hostname, _ := strings.CutSuffix(names[0], ".")
+	return hostname, nil
+}
+
+func (self *DumpPeer) EndpointName() (string, error) {
+	ip, _, found := strings.Cut(self.Endpoint, ":")
+	if !found {
+		return self.Endpoint, nil
+	}
+
+	hostname, err := lookupAddr(ip)
+	if err != nil {
+		return "", fmt.Errorf("resolving %q from %q: %w", ip, self.Endpoint, err)
+	} else if hostname == ip {
+		return self.Endpoint, nil
+	}
+	// ip:port (hostname)
+	return self.Endpoint + " (" + hostname + ")", nil
 }

@@ -5,6 +5,7 @@ import (
 	_ "embed"
 	"encoding/csv"
 	"io"
+	"net"
 	"strconv"
 	"testing"
 	"time"
@@ -180,4 +181,118 @@ func TestDumpPeer_parseLatestHanshake_zero(t *testing.T) {
 	var peer DumpPeer
 	require.NoError(t, peer.parseLatestHanshake("0"))
 	assert.True(t, peer.LatestHandshake.IsZero())
+}
+
+func TestLookupAddr(t *testing.T) {
+	tests := []struct {
+		name     string
+		peer     string
+		errAs    any
+		expected string
+	}{
+		{
+			name: "localhost",
+			peer: "127.0.0.1",
+		},
+		{
+			name:     "no such host",
+			peer:     "127.0.0.2",
+			expected: "127.0.0.2",
+		},
+		{
+			name:  "unrecognized address",
+			peer:  "127.0.0.1/8",
+			errAs: &net.DNSError{},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			hostname, err := lookupAddr(tt.peer)
+			if tt.errAs != nil {
+				require.ErrorAs(t, err, &tt.errAs)
+			} else {
+				require.NoError(t, err)
+				t.Log(hostname)
+				if tt.expected != "" {
+					assert.Equal(t, tt.expected, hostname)
+				}
+
+			}
+		})
+	}
+}
+
+func TestDumpPeer_ResolvedName(t *testing.T) {
+	tests := []struct {
+		name  string
+		peer  string
+		errAs any
+	}{
+		{
+			name: "localhost",
+			peer: "127.0.0.1/32",
+		},
+		{
+			name:  "invalid CIDR",
+			peer:  "127.0.0.1",
+			errAs: &net.ParseError{},
+		},
+		{
+			name: "no such host",
+			peer: "127.0.0.2/32",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			peer := DumpPeer{AllowedIPs: []string{tt.peer}}
+			hostname, err := peer.ResolvedName()
+			if tt.errAs != nil {
+				require.ErrorAs(t, err, &tt.errAs)
+			} else {
+				require.NoError(t, err)
+				t.Log(hostname)
+			}
+		})
+	}
+}
+
+func TestDumpPeer_EndpointName(t *testing.T) {
+	tests := []struct {
+		name     string
+		endpoint string
+		errAs    any
+	}{
+		{
+			name:     "localhost",
+			endpoint: "127.0.0.1:12345",
+		},
+		{
+			name:     "localhost without port",
+			endpoint: "127.0.0.1",
+		},
+		{
+			name:     "no such host",
+			endpoint: "127.0.0.2:12345",
+		},
+		{
+			name:     "unrecognized address",
+			endpoint: "127.0.0:12345",
+			errAs:    &net.DNSError{},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			peer := DumpPeer{Endpoint: tt.endpoint}
+			hostname, err := peer.EndpointName()
+			if tt.errAs != nil {
+				require.ErrorAs(t, err, &tt.errAs)
+			} else {
+				require.NoError(t, err)
+				t.Log(hostname)
+			}
+		})
+	}
 }

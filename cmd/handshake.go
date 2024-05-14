@@ -55,9 +55,10 @@ func handshakeResponse(dump *wg.Dump, resp *monitoringplugin.Response) error {
 		return fmt.Errorf("add performance point %v: %w",
 			peer.LatestHandshake, err)
 	}
-	resp.UpdateStatus(resp.GetStatusCode(), "peer: "+peer.Name())
 
-	if resp.GetStatusCode() != monitoringplugin.OK {
+	if err := outputPeerEndpoint(peer, resp); err != nil {
+		return err
+	} else if resp.GetStatusCode() != monitoringplugin.OK {
 		resp.UpdateStatus(resp.GetStatusCode(),
 			"latest handshake: "+d.String()+" ago")
 		var s string
@@ -79,4 +80,21 @@ func checkNeverHandshake(peer *wg.DumpPeer, resp *monitoringplugin.Response,
 	resp.UpdateStatus(monitoringplugin.WARNING, "latest handshake: never")
 	resp.UpdateStatus(monitoringplugin.WARNING, "peer="+peer.Name())
 	return true
+}
+
+func outputPeerEndpoint(peer *wg.DumpPeer,
+	resp *monitoringplugin.Response,
+) error {
+	if peerName, err := peer.ResolvedName(); err != nil {
+		return err
+	} else {
+		resp.UpdateStatus(resp.GetStatusCode(), "peer: "+peerName)
+	}
+
+	if epName, err := peer.EndpointName(); err != nil {
+		return err
+	} else {
+		resp.UpdateStatus(resp.GetStatusCode(), "endpoint: "+epName)
+	}
+	return nil
 }

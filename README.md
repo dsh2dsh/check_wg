@@ -42,11 +42,13 @@ Flags:
 
 $ check_wg handshake wg show wg0 dump
 OK: latest handshake: 1m10s ago
-peer: 10.0.0.3/32 | 'latest handshake'=70s;300;900;;
+peer: 10.0.0.3/32 (hostname)
+endpoint: 10.0.1.246:56571 (hostname) | 'latest handshake'=70s;300;900;;
 
 $ check_wg handshake wg show wg0 dump
 CRITICAL: latest handshake is outside of CRITICAL threshold
-peer: 10.0.0.4/32
+peer: 10.0.0.3/32 (hostname)
+endpoint: 10.0.1.246:56571 (hostname)
 latest handshake: 188016s ago
 threshold: 180000s | 'latest handshake'=188016s;300;180000;;
 
