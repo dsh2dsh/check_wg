@@ -196,8 +196,8 @@ func TestLookupAddr(t *testing.T) {
 		},
 		{
 			name:     "no such host",
-			peer:     "127.0.0.2",
-			expected: "127.0.0.2",
+			peer:     "127.0.0.0",
+			expected: "127.0.0.0",
 		},
 		{
 			name:  "unrecognized address",
