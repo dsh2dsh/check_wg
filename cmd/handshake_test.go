@@ -81,3 +81,16 @@ func TestHandshakeResponse_errors(t *testing.T) {
 	require.ErrorContains(t, handshakeResponse(&dump, resp),
 		"no valid peer found")
 }
+
+func TestCheckNeverHandshake(t *testing.T) {
+	dump, err := NewWgDump(
+		[]string{"cat", "../wg/testdata/latest_handshake_zero.txt"})
+	require.NoError(t, err)
+	require.NotNil(t, dump)
+
+	resp := monitoringplugin.NewResponse("test OK")
+	require.NoError(t, handshakeResponse(&dump, resp))
+	assert.Equal(t, monitoringplugin.WARNING, resp.GetStatusCode())
+	t.Log(resp.GetInfo().RawOutput)
+	assert.Contains(t, resp.GetInfo().RawOutput, "latest handshake: never")
+}

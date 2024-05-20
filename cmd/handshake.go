@@ -41,7 +41,9 @@ func handshakeResponse(dump *wg.Dump, resp *monitoringplugin.Response) error {
 	peer := dump.OldestHandshake()
 	if peer == nil {
 		return errors.New("no valid peer found")
-	} else if checkNeverHandshake(peer, resp) {
+	} else if neverHandshake, err := checkNeverHandshake(peer, resp); err != nil {
+		return err
+	} else if neverHandshake {
 		return nil
 	}
 
@@ -73,13 +75,19 @@ func handshakeResponse(dump *wg.Dump, resp *monitoringplugin.Response) error {
 }
 
 func checkNeverHandshake(peer *wg.DumpPeer, resp *monitoringplugin.Response,
-) bool {
+) (bool, error) {
 	if !peer.LatestHandshake.IsZero() {
-		return false
+		return false, nil
 	}
+
+	peerName, err := peer.ResolvedName()
+	if err != nil {
+		return false, err
+	}
+
 	resp.UpdateStatus(monitoringplugin.WARNING, "latest handshake: never")
-	resp.UpdateStatus(monitoringplugin.WARNING, "peer="+peer.Name())
-	return true
+	resp.UpdateStatus(monitoringplugin.WARNING, "peer="+peerName)
+	return true, nil
 }
 
 func outputPeerEndpoint(peer *wg.DumpPeer,
