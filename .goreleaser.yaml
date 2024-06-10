@@ -6,11 +6,12 @@
 # yaml-language-server: $schema=https://goreleaser.com/static/schema.json
 # vim: set ts=2 sw=2 tw=0 fo=cnqoj
 
-version: 1
+version: 2
 
 before:
   hooks:
     - "go mod tidy"
+    - "go mod vendor"
 
 builds:
   - env:
@@ -30,8 +31,18 @@ archives:
         format: "zip"
 
 changelog:
-  sort: "asc"
   filters:
     exclude:
       - "^docs:"
       - "^test:"
+
+source:
+  # Whether this pipe is enabled or not.
+  enabled: true
+
+  # Additional files/globs you want to add to the source archive.
+  #
+  # Since: v1.11
+  # Templates: allowed
+  files:
+    - "vendor"
