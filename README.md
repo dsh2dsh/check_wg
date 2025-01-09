@@ -6,6 +6,10 @@
 
 FreeBSD port [here](https://github.com/dsh2dsh/freebsd-ports/tree/master/net-mgmt/check_wg)
 
+``` shell
+pkg install check_wg
+```
+
 ## Usage
 
 ```
