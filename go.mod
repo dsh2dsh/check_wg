@@ -1,6 +1,6 @@
 module github.com/dsh2dsh/check_wg
 
-go 1.22.0
+go 1.24
 
 require (
 	github.com/dsh2dsh/go-monitoringplugin/v2 v2.0.1
