@@ -12,10 +12,11 @@ import (
 )
 
 var (
+	handshakeExclude             []string
 	handshakeWarn, handshakeCrit time.Duration
 
 	handshakeCmd = cobra.Command{
-		Use:   "handshake [-w 5m] [-c 15m] [wg show wg0 dump]",
+		Use:   "handshake [-w 5m] [-c 15m] [-x peer]... [wg show wg0 dump]",
 		Short: "check oldest latest handshake",
 		Long: `It executes given wg(8) command and reads its output or stdin, if no
 command was given at all.
@@ -31,14 +32,17 @@ status if any of them is greater of given threshold.`,
 )
 
 func init() {
-	handshakeCmd.Flags().DurationVarP(&handshakeWarn, "warn", "w", 5*time.Minute,
+	f := handshakeCmd.Flags()
+	f.StringArrayVarP(&handshakeExclude, "exclude", "x", nil,
+		"peers to exclude from check")
+	f.DurationVarP(&handshakeWarn, "warn", "w", 5*time.Minute,
 		"warning threshold")
-	handshakeCmd.Flags().DurationVarP(&handshakeCrit, "crit", "c", 15*time.Minute,
+	f.DurationVarP(&handshakeCrit, "crit", "c", 15*time.Minute,
 		"critical threshold")
 }
 
 func handshakeResponse(dump *wg.Dump, resp *monitoringplugin.Response) error {
-	peer := dump.OldestHandshake()
+	peer := dump.OldestHandshake(handshakeExclude...)
 	if peer == nil {
 		return errors.New("no valid peer found")
 	} else if never, err := checkNeverHandshake(peer, resp); never {

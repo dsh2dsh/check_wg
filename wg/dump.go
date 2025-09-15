@@ -95,10 +95,18 @@ func (self *Dump) parseFwMark(s string) error {
 	return nil
 }
 
-func (self *Dump) OldestHandshake() *DumpPeer {
+func (self *Dump) OldestHandshake(excludePeers ...string) *DumpPeer {
+	exclude := map[string]struct{}{}
+	for _, s := range excludePeers {
+		exclude[s] = struct{}{}
+	}
+
 	var oldestPeer *DumpPeer
 	for i := range self.Peers {
 		p := &self.Peers[i]
+		if _, ok := exclude[p.Name()]; ok {
+			continue
+		}
 		if oldestPeer == nil || p.HandshakeBefore(oldestPeer) {
 			oldestPeer = p
 		}

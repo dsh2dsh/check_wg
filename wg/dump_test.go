@@ -92,8 +92,14 @@ func TestDump_Parse(t *testing.T) {
 
 	peer := dump.OldestHandshake()
 	require.NotNil(t, peer)
-	t.Log("oldest peer:", peer.LatestHandshake)
+	t.Log("1st oldest peer:", peer.Name(), peer.LatestHandshake)
 	assert.Same(t, &dump.Peers[2], peer)
+
+	peer2 := dump.OldestHandshake("10.0.0.4/32")
+	require.NotNil(t, peer2)
+	t.Log("2nd oldest peer:", peer2.Name(), peer2.LatestHandshake)
+	assert.NotSame(t, peer, peer2)
+	assert.Same(t, &dump.Peers[1], peer2)
 }
 
 func TestDump_Parse_readEOF(t *testing.T) {

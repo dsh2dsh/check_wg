@@ -37,12 +37,13 @@ It analizes latest handshake of every peer and outputs warning or critical
 status if any of them is greater of given threshold.
 
 Usage:
-  check_wg handshake [-w 5m] [-c 15m] [wg show wg0 dump] [flags]
+  check_wg handshake [-w 5m] [-c 15m] [-x peer]... [wg show wg0 dump] [flags]
 
 Flags:
-  -c, --crit duration   critical threshold (default 15m0s)
-  -h, --help            help for handshake
-  -w, --warn duration   warning threshold (default 5m0s)
+  -c, --crit duration         critical threshold (default 15m0s)
+  -x, --exclude stringArray   peers to exclude from check
+  -h, --help                  help for handshake
+  -w, --warn duration         warning threshold (default 5m0s)
 
 $ check_wg handshake wg show wg0 dump
 OK: latest handshake: 1m10s ago
