@@ -22,6 +22,7 @@ linters:
     - "asciicheck"
     - "bidichk"
     - "copyloopvar"
+    - "embeddedstructfieldcheck"
     - "errorlint"
     - "gocritic"
     - "makezero"
@@ -31,6 +32,7 @@ linters:
     - "perfsprint"
     - "prealloc"
     - "predeclared"
+    - "sloglint"
     - "testifylint"
     - "unconvert"
     - "usestdlibvars"
@@ -51,6 +53,10 @@ linters:
         - "(net.Conn).Close"
         - "(*os.File).Close"
 
+      # Display function signature instead of selector.
+      # Default: false
+      verbose: true
+
     nolintlint:
       # Enable to require an explanation of nonzero length after each nolint
       # directive.
@@ -60,6 +66,12 @@ linters:
       # suppressed.
       # Default: false
       require-specific: true
+
+    sloglint:
+      # Enforce using attributes only (overrides no-mixed-args, incompatible with kv-only).
+      # https://github.com/go-simpler/sloglint?tab=readme-ov-file#attributes-only
+      # Default: false
+      attr-only: true
 
     staticcheck:
       # SAxxxx checks in https://staticcheck.dev/docs/configuration/options/#checks
@@ -72,6 +84,9 @@ linters:
         # Poorly chosen receiver name
         # https://staticcheck.dev/docs/checks/#ST1006
         - "-ST1006"
+        # ST1011 - Poorly chosen name for variable of type time.Duration
+        # https://staticcheck.dev/docs/checks/#ST1011
+        - "-ST1011"
         - "-ST1016"
         - "-ST1020"
         - "-ST1021"
