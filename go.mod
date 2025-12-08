@@ -4,7 +4,7 @@ go 1.25
 
 require (
 	github.com/dsh2dsh/go-monitoringplugin/v2 v2.0.1
-	github.com/spf13/cobra v1.10.1
+	github.com/spf13/cobra v1.10.2
 	github.com/stretchr/testify v1.11.1
 )
 
