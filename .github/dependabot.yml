@@ -9,7 +9,18 @@ updates:
     directory: "/" # Location of package manifests
     schedule:
       interval: "weekly"
+    cooldown:
+      default-days: 5
+    groups:
+      "github-actions":
+        patterns: [ "*" ]
+
   - package-ecosystem: "gomod"
     directory: "/"
     schedule:
       interval: "weekly"
+    cooldown:
+      default-days: 5
+    groups:
+      "gomod":
+        patterns: [ "*" ]
