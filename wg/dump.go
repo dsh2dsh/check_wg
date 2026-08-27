@@ -173,7 +173,7 @@ func (self *DumpPeer) parseLatestHanshake(s string) error {
 	return nil
 }
 
-func (self *DumpPeer) parseRxTx(rx string, tx string) error {
+func (self *DumpPeer) parseRxTx(rx, tx string) error {
 	rxBytes, err := strconv.ParseUint(rx, 10, 64)
 	if err != nil {
 		return fmt.Errorf("failed parse transfer-rx %q: %w", rx, err)

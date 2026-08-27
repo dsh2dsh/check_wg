@@ -58,7 +58,7 @@ func NewWgDump(args []string) (dump wg.Dump, err error) {
 		}
 		return nil
 	})
-	return
+	return dump, err
 }
 
 func withWgCmd(args []string, fn func(r io.Reader) error) error {
